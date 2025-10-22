@@ -19,7 +19,7 @@ namespace UserManagement.Application.Services
             _configuration = configuration;
         }
 
-        public string GenerateToken(string username)
+        public string GenerateToken(int userId, string username)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
@@ -27,6 +27,7 @@ namespace UserManagement.Application.Services
 
             var claims = new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Name, username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

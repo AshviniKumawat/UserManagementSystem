@@ -21,10 +21,18 @@ namespace UserManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Forbid();
+            }
             try
             {
-                var profiles = await _service.GetAllAsync();
-                return Ok(profiles);
+                var profile = await _service.GetByIdAsync(userId);
+                if (profile == null)
+                    return NotFound($"Profile with Id={userId} not found.");
+                return Ok(new[] { profile });
             }
             catch (Exception ex)
             {
@@ -35,6 +43,12 @@ namespace UserManagement.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+            
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId != id)
+            {
+                return Forbid();
+            }
             try
             {
                 var profile = await _service.GetByIdAsync(id);

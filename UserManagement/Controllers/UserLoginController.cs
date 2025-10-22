@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserManagement.Application.DTOs;
 using UserManagement.Application.Interfaces;
 using UserManagement.Entities.Entities;
+using System.Linq;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -23,10 +24,19 @@ namespace UserManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+            {
+                return Forbid();
+            }
+
             try
             {
-                var users = await _service.GetAllAsync();
-                return Ok(users);
+                var user = await _service.GetByIdAsync(userId);
+                if (user == null)
+                    return NotFound($"User with Id={userId} not found.");
+
+                return Ok(new[] { user });
             }
             catch (Exception ex)
             {
@@ -37,6 +47,12 @@ namespace UserManagement.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+            
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId) || userId != id)
+            {
+                return Forbid();
+            }
             try
             {
                 var user = await _service.GetByIdAsync(id);

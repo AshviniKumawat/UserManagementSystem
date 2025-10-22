@@ -24,7 +24,7 @@ namespace UserManagement.Controllers
             if (user == null || user.Password != loginRequest.Password)
                 return Unauthorized("Invalid username or password.");
 
-            var token = _jwtService.GenerateToken(user.Username);
+            var token = _jwtService.GenerateToken(user.Id, user.Username);
             return Ok(new { Token = token });
         }
     }
